@@ -1,3 +1,15 @@
 .decagone-timer {
   --decagone-timer-accent: #6b21a8;
 }
+
+/* Frameless overlay: no AppV2 chrome, and for players the panel is a pure
+   display — clicks fall through to the canvas beneath it. */
+.decagone-timer-overlay {
+  background: none;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+}
+.decagone-timer-overlay:not(.decagone-timer-gm) {
+  pointer-events: none;
+}

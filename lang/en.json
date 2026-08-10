@@ -1,5 +1,15 @@
 {
   "decagone-timer": {
-    "title": "Decagone Timer"
+    "title": "Decagone Timer",
+    "settings": {
+      "state": "Timer state"
+    },
+    "timer": {
+      "start": "Start",
+      "pause": "Pause",
+      "reset": "Reset",
+      "minutes": "Minutes",
+      "gmOnly": "Only the GM can toggle the Decagone Timer."
+    }
   }
 }

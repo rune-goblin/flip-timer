@@ -12,7 +12,21 @@ export default defineConfig({
   root: 'src/',
   base: `/modules/${id}/dist/`,
   // root is src/, so point the plugin at the repo-root config (shared with svelte-check).
-  plugins: [svelte({ configFile: fileURLToPath(new URL('./svelte.config.ts', import.meta.url)) })],
+  plugins: [
+    svelte({ configFile: fileURLToPath(new URL('./svelte.config.ts', import.meta.url)) }),
+    {
+      // module.json makes Foundry emit a <link> to the built CSS, which doesn't exist in
+      // dev (styles arrive through Vite's JS pipeline) and 404s red in the console every
+      // page load. Answer it with an empty sheet instead.
+      name: 'serve-empty-module-css',
+      configureServer(server) {
+        server.middlewares.use(`/modules/${id}/dist/${id}.css`, (_req, res) => {
+          res.setHeader('Content-Type', 'text/css');
+          res.end('/* dev: styles are injected by Vite HMR */\n');
+        });
+      },
+    },
+  ],
   resolve: {
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
   },

@@ -1,0 +1,72 @@
+import { mount, unmount } from 'svelte';
+import { MODULE_ID } from '@/constants';
+import TimerPanel from './components/flipclock/TimerPanel.svelte';
+
+const { ApplicationV2 } = foundry.applications.api;
+
+export class TimerApp extends ApplicationV2 {
+  static override DEFAULT_OPTIONS = {
+    id: `${MODULE_ID}-panel`,
+    tag: 'section',
+    classes: [MODULE_ID, `${MODULE_ID}-overlay`],
+    window: { frame: false, positioned: true },
+    position: { width: 'auto' as const, height: 'auto' as const, top: 24 },
+  };
+
+  static #instance?: TimerApp;
+  #component?: ReturnType<typeof mount>;
+  #root?: HTMLElement;
+  #allowClose = false;
+
+  /** Sole open/close path — driven by synced state, so no client can diverge. */
+  static sync(visible: boolean): void {
+    if (visible) {
+      (TimerApp.#instance ??= new TimerApp()).render({ force: true });
+    } else if (TimerApp.#instance) {
+      const app = TimerApp.#instance;
+      TimerApp.#instance = undefined;
+      app.#allowClose = true;
+      void app.close();
+    }
+  }
+
+  // Swallows every close not initiated by sync() — Esc, macros, other modules.
+  override close(options?: Parameters<InstanceType<typeof ApplicationV2>['close']>[0]): Promise<this> {
+    if (!this.#allowClose) return Promise.resolve(this);
+    return super.close(options) as Promise<this>;
+  }
+
+  protected override async _onFirstRender(
+    context: object,
+    options: foundry.applications.ApplicationRenderOptions,
+  ): Promise<void> {
+    await super._onFirstRender(context, options);
+    this.element.classList.toggle(`${MODULE_ID}-gm`, game.user.isGM);
+    this.setPosition({
+      left: Math.max((window.innerWidth - this.element.offsetWidth) / 2, 0),
+    });
+  }
+
+  // AppV2 runs _renderHTML on every render; mount once and reuse the node, so a
+  // re-render neither leaks a second component (the first is never unmounted) nor
+  // discards Svelte's reactive state. Svelte drives all updates from here.
+  protected override async _renderHTML(): Promise<HTMLElement> {
+    if (!this.#component) {
+      this.#root = document.createElement('div');
+      this.#component = mount(TimerPanel, { target: this.#root });
+    }
+    return this.#root!;
+  }
+
+  protected override _replaceHTML(result: HTMLElement, content: HTMLElement): void {
+    content.replaceChildren(result);
+  }
+
+  protected override async _preClose(): Promise<void> {
+    if (this.#component) {
+      unmount(this.#component);
+      this.#component = undefined;
+      this.#root = undefined;
+    }
+  }
+}

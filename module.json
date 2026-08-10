@@ -9,6 +9,7 @@
       "name": "Mark Pearce"
     }
   ],
+  "socket": true,
   "esmodules": [
     "dist/decagone-timer.js"
   ],
@@ -30,17 +31,6 @@
       "type": "Macro"
     }
   ],
-  "relationships": {
-    "systems": [
-      {
-        "id": "pf2e",
-        "type": "system",
-        "compatibility": {
-          "minimum": "8.0.0"
-        }
-      }
-    ]
-  },
   "compatibility": {
     "minimum": "14",
     "verified": "14"
