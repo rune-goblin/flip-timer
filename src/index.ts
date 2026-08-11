@@ -1,6 +1,7 @@
 import './styles.css';
-import { MODULE_ID } from './constants';
+import { MODULE_ID, SETTING_COMPACT } from './constants';
 import { DEFAULT_STATE, SETTING_STATE, timer, type TimerSyncState } from './timer/store.svelte';
+import { SETTING_POSITION } from './timer/placement';
 import { initTimerSocket } from './timer/socket';
 import { ExampleApp } from './ui/ExampleApp';
 import { TimerApp } from './ui/TimerApp';
@@ -20,6 +21,21 @@ Hooks.once('init', () => {
     config: false,
     type: Object,
     default: DEFAULT_STATE,
+  });
+  // Client-scoped: each user places and sizes the overlay to suit their screen.
+  game.settings.register(MODULE_ID, SETTING_POSITION, {
+    name: `${MODULE_ID}.settings.position`,
+    scope: 'client',
+    config: false,
+    type: Object,
+    default: {},
+  });
+  game.settings.register(MODULE_ID, SETTING_COMPACT, {
+    name: `${MODULE_ID}.settings.compact`,
+    scope: 'client',
+    config: false,
+    type: Boolean,
+    default: false,
   });
 });
 

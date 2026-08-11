@@ -3,10 +3,12 @@
 
   let {
     text,
+    flat = false,
     onadjust,
     adjustLabel,
   }: {
     text: string;
+    flat?: boolean;
     onadjust?: (index: number, delta: number) => void;
     adjustLabel?: (index: number, delta: number) => string;
   } = $props();
@@ -19,6 +21,7 @@
     {#if ch >= '0' && ch <= '9'}
       <FlipDigit
         value={ch}
+        {flat}
         onadjust={onadjust && ((delta) => onadjust(i, delta))}
         labelUp={adjustLabel?.(i, 1)}
         labelDown={adjustLabel?.(i, -1)}
@@ -36,7 +39,7 @@
   .flipclock {
     display: flex;
     align-items: center;
-    gap: calc(var(--fc-h, 96px) * 0.08);
+    gap: var(--fc-gap, calc(var(--fc-h, 96px) * 0.08));
   }
   .sep {
     display: flex;

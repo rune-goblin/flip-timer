@@ -1,5 +1,6 @@
 import { mount, unmount } from 'svelte';
 import { MODULE_ID } from '@/constants';
+import { placement } from '@/timer/placement';
 import TimerPanel from './components/flipclock/TimerPanel.svelte';
 
 const { ApplicationV2 } = foundry.applications.api;
@@ -37,12 +38,14 @@ export class TimerApp extends ApplicationV2 {
     return super.close(options) as Promise<this>;
   }
 
+  // First render is the earliest the element is in the document — the panel itself is
+  // mounted detached, so it cannot reach its own overlay.
   protected override async _onFirstRender(
     context: object,
     options: foundry.applications.ApplicationRenderOptions,
   ): Promise<void> {
     await super._onFirstRender(context, options);
-    this.element.classList.toggle(`${MODULE_ID}-gm`, game.user.isGM);
+    placement.attach(this.element);
   }
 
   // AppV2 runs _renderHTML on every render; mount once and reuse the node, so a
@@ -61,6 +64,7 @@ export class TimerApp extends ApplicationV2 {
   }
 
   protected override async _preClose(): Promise<void> {
+    placement.detach();
     if (this.#component) {
       unmount(this.#component);
       this.#component = undefined;

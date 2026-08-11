@@ -2,13 +2,21 @@
   "decagone-timer": {
     "title": "Decagone Timer",
     "settings": {
-      "state": "Timer state"
+      "state": "Timer state",
+      "position": "Timer position",
+      "compact": "Compact timer"
     },
     "timer": {
       "start": "Start",
       "pause": "Pause",
       "reset": "Reset",
       "minutes": "Minutes",
+      "split": "Split",
+      "move": "Drag to move the timer",
+      "shrink": "Shrink the timer",
+      "enlarge": "Enlarge the timer",
+      "swap": "Swap with the main timer",
+      "merge": "Remove the split timer",
       "adjustUp": "Increase {place}",
       "adjustDown": "Decrease {place}",
       "places": {

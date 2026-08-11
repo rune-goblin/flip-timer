@@ -1,4 +1,4 @@
-import { MAX_TIMER_SECONDS, MODULE_ID } from '@/constants';
+import { MAX_SPLITS, MAX_TIMER_SECONDS, MODULE_ID } from '@/constants';
 import { broadcastTimerSync } from './socket';
 
 export const SETTING_STATE = 'state';
@@ -12,6 +12,10 @@ export interface TimerSyncState {
   remaining: number;
   /** Configured countdown length in seconds. */
   duration: number;
+  /** Seconds parked beside the main clock, oldest first, at most MAX_SPLITS. Each
+   *  is its own timeline in the sense that matters here: it never ticks, so it
+   *  holds while the main clock runs. */
+  splits: number[];
 }
 
 export const DEFAULT_STATE: TimerSyncState = {
@@ -20,6 +24,7 @@ export const DEFAULT_STATE: TimerSyncState = {
   endAt: 0,
   remaining: 300,
   duration: 300,
+  splits: [],
 };
 
 // GM-authority: only the GM's client mutates; every mutator publishes the new
@@ -31,6 +36,7 @@ class TimerStore {
   endAt = $state(DEFAULT_STATE.endAt);
   remaining = $state(DEFAULT_STATE.remaining);
   duration = $state(DEFAULT_STATE.duration);
+  splits = $state<number[]>([]);
 
   apply(state: Partial<TimerSyncState> | undefined): void {
     const s = { ...DEFAULT_STATE, ...state };
@@ -39,6 +45,7 @@ class TimerStore {
     this.endAt = s.endAt;
     this.remaining = s.remaining;
     this.duration = s.duration;
+    this.splits = [...(s.splits ?? [])].slice(0, MAX_SPLITS);
   }
 
   snapshot(): TimerSyncState {
@@ -48,7 +55,13 @@ class TimerStore {
       endAt: this.endAt,
       remaining: this.remaining,
       duration: this.duration,
+      splits: [...this.splits],
     };
+  }
+
+  /** Seconds the face is showing right now, running or not. */
+  live(): number {
+    return this.running ? Math.max(Math.ceil((this.endAt - Date.now()) / 1000), 0) : this.remaining;
   }
 
   toggleVisible(): void {
@@ -66,7 +79,7 @@ class TimerStore {
 
   pause(): void {
     if (!game.user.isGM || !this.running) return;
-    this.remaining = Math.max(Math.ceil((this.endAt - Date.now()) / 1000), 0);
+    this.remaining = this.live();
     this.running = false;
     this.#publish();
   }
@@ -95,6 +108,31 @@ class TimerStore {
     if (!game.user.isGM) return;
     this.duration = Math.min(Math.max(Math.trunc(minutes), 1), 99) * 60;
     if (!this.running) this.remaining = this.duration;
+    this.#publish();
+  }
+
+  splitOff(): void {
+    if (!game.user.isGM || this.splits.length >= MAX_SPLITS) return;
+    this.splits.push(this.live());
+    this.#publish();
+  }
+
+  /** Straight exchange: the split takes the face — paused, as it was parked — and the
+   *  main clock's live time parks in its place. */
+  swapSplit(index: number): void {
+    if (!game.user.isGM) return;
+    const parked = this.splits[index];
+    if (parked === undefined) return;
+    this.splits[index] = this.live();
+    this.running = false;
+    this.endAt = 0;
+    this.remaining = parked;
+    this.#publish();
+  }
+
+  mergeSplit(index: number): void {
+    if (!game.user.isGM || this.splits[index] === undefined) return;
+    this.splits.splice(index, 1);
     this.#publish();
   }
 

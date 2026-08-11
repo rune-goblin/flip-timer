@@ -3,49 +3,44 @@
 
   let {
     value,
+    flat = false,
     onadjust,
     labelUp,
     labelDown,
   }: {
     value: string;
+    /** One whole card, no hinge and no flip — the split-flap seam swamps the glyph
+     *  at small sizes. */
+    flat?: boolean;
     onadjust?: (delta: number) => void;
     labelUp?: string;
     labelDown?: string;
   } = $props();
 
   // The initial prop value seeds the display; from then on the flip state machine
-  // owns these and follows `value` one animation at a time.
+  // owns these and follows `value`.
   // svelte-ignore state_referenced_locally
   let current = $state(value);
   // svelte-ignore state_referenced_locally
   let next = $state(value);
   let flipping = $state(false);
-  // Keys the flap so a queued flip rebuilds the element; without a fresh node the
+  // Keys the flap so a restarted flip rebuilds the element; without a fresh node the
   // CSS animation, already at its end state, would never replay.
   let flipId = $state(0);
 
-  // Plain, not $state: the queue is machinery, and leaving it untracked keeps the
-  // enqueue effect from re-running on its own push.
-  const pending: string[] = [];
   // svelte-ignore state_referenced_locally
   let latest = value;
 
-  // Every distinct value gets its own flip — a GM clicking faster than the 480ms
-  // animation queues flips up rather than collapsing them into the newest value.
+  // Always flipping toward the newest value: a click landing mid-flip lands that flip
+  // at once and starts a fresh one, so the face never trails behind the GM.
   $effect(() => {
-    if (value === latest) return;
+    if (flat || value === latest) return;
     latest = value;
-    pending.push(value);
-    if (!flipping) advance();
-  });
-
-  function advance() {
-    const target = pending.shift();
-    if (target === undefined) return;
-    next = target;
+    if (flipping) current = next;
+    next = value;
     flipping = true;
     flipId += 1;
-  }
+  });
 
   // The shade animations on the faces' pseudo-elements bubble their own
   // animationend up here; only the flap's own end settles the flip.
@@ -53,7 +48,6 @@
     if (event.target !== event.currentTarget) return;
     current = next;
     flipping = false;
-    advance();
   }
 
   // Digit art is served by Foundry at the module path (never imported — see CLAUDE.md);
@@ -67,31 +61,39 @@
   </div>
 {/snippet}
 
-<div class="digit">
-  <div class="half top">
-    {@render pane(flipping ? next : current, 'top')}
+{#if flat}
+  <div class="digit flat">
+    <div class="pane">
+      <span class="glyph" style:mask-image={glyphUrl(value)}></span>
+    </div>
   </div>
-  <div class="half bottom">
-    {@render pane(current, 'bottom')}
+{:else}
+  <div class="digit">
+    <div class="half top">
+      {@render pane(flipping ? next : current, 'top')}
+    </div>
+    <div class="half bottom">
+      {@render pane(current, 'bottom')}
+    </div>
+    {#if flipping}
+      {#key flipId}
+        <div class="flap" onanimationend={settle}>
+          <div class="face front">
+            {@render pane(current, 'top')}
+          </div>
+          <div class="face back">
+            {@render pane(next, 'bottom')}
+          </div>
+        </div>
+      {/key}
+    {/if}
+    <div class="hinge"></div>
+    {#if onadjust}
+      <button type="button" class="nudge up" aria-label={labelUp} onclick={() => onadjust(1)}></button>
+      <button type="button" class="nudge down" aria-label={labelDown} onclick={() => onadjust(-1)}></button>
+    {/if}
   </div>
-  {#if flipping}
-    {#key flipId}
-      <div class="flap" onanimationend={settle}>
-        <div class="face front">
-          {@render pane(current, 'top')}
-        </div>
-        <div class="face back">
-          {@render pane(next, 'bottom')}
-        </div>
-      </div>
-    {/key}
-  {/if}
-  <div class="hinge"></div>
-  {#if onadjust}
-    <button type="button" class="nudge up" aria-label={labelUp} onclick={() => onadjust(1)}></button>
-    <button type="button" class="nudge down" aria-label={labelDown} onclick={() => onadjust(-1)}></button>
-  {/if}
-</div>
+{/if}
 
 <style>
   .digit {
@@ -131,6 +133,14 @@
       var(--fc-card, #1c1c22) 42%,
       color-mix(in srgb, var(--fc-card, #1c1c22) 92%, black) 100%
     );
+  }
+  .digit.flat {
+    overflow: hidden;
+    border-radius: var(--fc-r);
+  }
+  .digit.flat .pane {
+    inset: 0;
+    height: 100%;
   }
   .pane-top {
     top: 0;
