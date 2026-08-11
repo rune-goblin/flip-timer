@@ -1,4 +1,4 @@
-# Decagone Timer
+# Flip Timer
 
 A starting point for **Pathfinder 2e Foundry VTT** modules. Ship compendium content
 (`packs/`) and a scripted esmodule (`src/`) — a **Svelte 5** UI in an **ApplicationV2**
@@ -16,7 +16,7 @@ shell — from one repo.
 
 - **Svelte 5 in ApplicationV2, wired up.** A working window (`src/ui/ExampleApp.ts`)
   `mount()`s a runes component and `unmount()`s it on close. Open it from the console:
-  `game.modules.get('decagone-timer').api.open()`.
+  `game.modules.get('flip-timer').api.open()`.
 
 - **Vite Hot Module Reload.** `src/index.ts` compiles to `dist/<id>.{js,css}`, the artifacts
   `module.json` loads. `npm run dev` serves with hot module reload (HMR); `npm run check` runs `svelte-check` and `tsc`.
@@ -59,7 +59,7 @@ src/                 TypeScript + Svelte source (entry: src/index.ts)
   ui/ExampleApp.ts                       ApplicationV2 shell that mounts a Svelte component
   ui/components/example/Example.svelte         sample Svelte 5 component (runes)
   ui/components/example/RuneGoblinBadge.svelte example: art referenced by served path (img + fetched SVG)
-  styles.css         global styles → dist/decagone-timer.css
+  styles.css         global styles → dist/flip-timer.css
   app.d.ts           ambient *.svelte declaration
 assets/              module art — one source, one output, served at modules/<id>/assets/…
 dist/                build output (gitignored) — what module.json loads
@@ -180,7 +180,7 @@ claude mcp add -s project svelte -- npx -y @sveltejs/mcp  # or commit for collab
 The window is a thin `ApplicationV2` subclass; Svelte renders. `_renderHTML` calls
 `mount()` into a detached element, `_replaceHTML` inserts it, `_preClose` calls
 `unmount()`. See `src/ui/ExampleApp.ts`. Open the sample from the console:
-`game.modules.get('decagone-timer').api.open()`.
+`game.modules.get('flip-timer').api.open()`.
 
 ## Compendium packs (fvtt CLI)
 

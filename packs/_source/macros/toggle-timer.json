@@ -1,12 +1,12 @@
 {
   "_id": "pmtToggleTimer01",
   "_key": "!macros!pmtToggleTimer01",
-  "name": "Decagone Timer: Toggle",
+  "name": "Flip Timer: Toggle",
   "type": "script",
   "author": "pmtTemplateUser1",
   "img": "icons/svg/clockwork.svg",
   "scope": "global",
-  "command": "game.modules.get('decagone-timer')?.api?.toggle();",
+  "command": "game.modules.get('flip-timer')?.api?.toggle();",
   "ownership": {
     "default": 0
   },

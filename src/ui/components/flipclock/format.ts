@@ -16,7 +16,7 @@ export interface ClockPlace {
   modulus: number;
   /** Seconds one step of this column is worth. */
   weight: number;
-  /** Suffix of the `decagone-timer.timer.places.*` string naming this column. */
+  /** Suffix of the `flip-timer.timer.places.*` string naming this column. */
   name: string;
 }
 

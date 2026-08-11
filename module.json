@@ -1,6 +1,6 @@
 {
-  "id": "decagone-timer",
-  "title": "Decagone Timer",
+  "id": "flip-timer",
+  "title": "Flip Timer",
   "description": "A Pathfinder 2e Foundry VTT module template: compendium content plus a scripted esmodule with a Svelte 5 UI mounted in ApplicationV2.",
   "version": "0.1.0",
   "license": "MIT",
@@ -11,10 +11,10 @@
   ],
   "socket": true,
   "esmodules": [
-    "dist/decagone-timer.js"
+    "dist/flip-timer.js"
   ],
   "styles": [
-    "dist/decagone-timer.css"
+    "dist/flip-timer.css"
   ],
   "languages": [
     {
@@ -26,7 +26,7 @@
   "packs": [
     {
       "name": "macros",
-      "label": "Decagone Timer Macros",
+      "label": "Flip Timer Macros",
       "path": "packs/macros",
       "type": "Macro"
     }
@@ -35,7 +35,7 @@
     "minimum": "14",
     "verified": "14"
   },
-  "url": "https://github.com/rune-goblin/decagone-timer",
-  "manifest": "https://github.com/rune-goblin/decagone-timer/releases/latest/download/module.json",
-  "download": "https://github.com/rune-goblin/decagone-timer/releases/latest/download/decagone-timer.zip"
+  "url": "https://github.com/rune-goblin/flip-timer",
+  "manifest": "https://github.com/rune-goblin/flip-timer/releases/latest/download/module.json",
+  "download": "https://github.com/rune-goblin/flip-timer/releases/latest/download/flip-timer.zip"
 }

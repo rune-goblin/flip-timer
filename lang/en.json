@@ -1,6 +1,6 @@
 {
-  "decagone-timer": {
-    "title": "Decagone Timer",
+  "flip-timer": {
+    "title": "Flip Timer",
     "settings": {
       "state": "Timer state",
       "position": "Timer position",
@@ -25,7 +25,7 @@
         "secondsTens": "tens of seconds",
         "secondsOnes": "seconds"
       },
-      "gmOnly": "Only the GM can toggle the Decagone Timer."
+      "gmOnly": "Only the GM can toggle the Flip Timer."
     }
   }
 }
