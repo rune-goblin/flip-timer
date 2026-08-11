@@ -9,6 +9,14 @@
       "pause": "Pause",
       "reset": "Reset",
       "minutes": "Minutes",
+      "adjustUp": "Increase {place}",
+      "adjustDown": "Decrease {place}",
+      "places": {
+        "minutesTens": "tens of minutes",
+        "minutesOnes": "minutes",
+        "secondsTens": "tens of seconds",
+        "secondsOnes": "seconds"
+      },
       "gmOnly": "Only the GM can toggle the Decagone Timer."
     }
   }

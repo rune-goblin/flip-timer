@@ -9,8 +9,9 @@ export class TimerApp extends ApplicationV2 {
     id: `${MODULE_ID}-panel`,
     tag: 'section',
     classes: [MODULE_ID, `${MODULE_ID}-overlay`],
-    window: { frame: false, positioned: true },
-    position: { width: 'auto' as const, height: 'auto' as const, top: 24 },
+    // Unpositioned so AppV2 writes no inline left/top: CSS pins it top-centre, which
+    // survives window resizes and the clock changing width.
+    window: { frame: false, positioned: false },
   };
 
   static #instance?: TimerApp;
@@ -42,9 +43,6 @@ export class TimerApp extends ApplicationV2 {
   ): Promise<void> {
     await super._onFirstRender(context, options);
     this.element.classList.toggle(`${MODULE_ID}-gm`, game.user.isGM);
-    this.setPosition({
-      left: Math.max((window.innerWidth - this.element.offsetWidth) / 2, 0),
-    });
   }
 
   // AppV2 runs _renderHTML on every render; mount once and reuse the node, so a

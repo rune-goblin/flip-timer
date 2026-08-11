@@ -2,7 +2,7 @@
   import { MODULE_ID } from '@/constants';
   import { timer } from '@/timer/store.svelte';
   import FlipClock from './FlipClock.svelte';
-  import { formatClock } from './format';
+  import { adjustClockDigit, CLOCK_PLACES, formatClock } from './format';
 
   const isGM = game.user.isGM;
 
@@ -34,11 +34,20 @@
   let minutes = $state(Math.max(Math.round(timer.duration / 60), 1));
 
   const i18n = (key: string) => game.i18n.localize(`${MODULE_ID}.timer.${key}`);
+
+  // Adjusting off the displayed value, not the stored one, so a running clock is
+  // overridden from the second the GM actually sees.
+  const adjust = (index: number, delta: number) => timer.setRemaining(adjustClockDigit(shown, index, delta));
+
+  const adjustLabel = (index: number, delta: number) =>
+    game.i18n.format(`${MODULE_ID}.timer.${delta > 0 ? 'adjustUp' : 'adjustDown'}`, {
+      place: i18n(`places.${CLOCK_PLACES[index]?.name}`),
+    });
 </script>
 
 <div class="timer-panel">
   <div class={['clock', { urgent, done, running: timer.running }]}>
-    <FlipClock text={display} />
+    <FlipClock text={display} onadjust={isGM ? adjust : undefined} adjustLabel={isGM ? adjustLabel : undefined} />
   </div>
   {#if isGM}
     <div class="controls">

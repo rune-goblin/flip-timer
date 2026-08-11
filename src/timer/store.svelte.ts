@@ -1,4 +1,4 @@
-import { MODULE_ID } from '@/constants';
+import { MAX_TIMER_SECONDS, MODULE_ID } from '@/constants';
 import { broadcastTimerSync } from './socket';
 
 export const SETTING_STATE = 'state';
@@ -75,6 +75,19 @@ class TimerStore {
     if (!game.user.isGM) return;
     this.running = false;
     this.remaining = this.duration;
+    this.#publish();
+  }
+
+  /** GM override straight off the clock face; leaves `duration` alone so reset still
+   *  restores the configured length. */
+  setRemaining(seconds: number): void {
+    if (!game.user.isGM) return;
+    const next = Math.min(Math.max(Math.trunc(seconds), 0), MAX_TIMER_SECONDS);
+    this.remaining = next;
+    if (this.running) {
+      if (next === 0) this.running = false;
+      else this.endAt = Date.now() + next * 1000;
+    }
     this.#publish();
   }
 

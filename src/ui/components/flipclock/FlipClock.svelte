@@ -1,7 +1,15 @@
 <script lang="ts">
   import FlipDigit from './FlipDigit.svelte';
 
-  let { text }: { text: string } = $props();
+  let {
+    text,
+    onadjust,
+    adjustLabel,
+  }: {
+    text: string;
+    onadjust?: (index: number, delta: number) => void;
+    adjustLabel?: (index: number, delta: number) => string;
+  } = $props();
 </script>
 
 <!-- Keyed by position on purpose: a column's identity IS its position, so each
@@ -9,7 +17,12 @@
 <div class="flipclock" role="timer">
   {#each text as ch, i (i)}
     {#if ch >= '0' && ch <= '9'}
-      <FlipDigit value={ch} />
+      <FlipDigit
+        value={ch}
+        onadjust={onadjust && ((delta) => onadjust(i, delta))}
+        labelUp={adjustLabel?.(i, 1)}
+        labelDown={adjustLabel?.(i, -1)}
+      />
     {:else}
       <div class="sep" aria-hidden="true">
         <span></span>

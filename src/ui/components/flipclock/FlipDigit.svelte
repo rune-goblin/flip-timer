@@ -1,7 +1,17 @@
 <script lang="ts">
   import { MODULE_ID } from '@/constants';
 
-  let { value }: { value: string } = $props();
+  let {
+    value,
+    onadjust,
+    labelUp,
+    labelDown,
+  }: {
+    value: string;
+    onadjust?: (delta: number) => void;
+    labelUp?: string;
+    labelDown?: string;
+  } = $props();
 
   // The initial prop value seeds the display; from then on the flip state machine
   // owns these and follows `value` one animation at a time.
@@ -10,19 +20,40 @@
   // svelte-ignore state_referenced_locally
   let next = $state(value);
   let flipping = $state(false);
+  // Keys the flap so a queued flip rebuilds the element; without a fresh node the
+  // CSS animation, already at its end state, would never replay.
+  let flipId = $state(0);
 
-  // Values arriving mid-flip wait for animationend; the effect re-runs on settle
-  // (it reads `flipping`) and starts the next flip, skipping intermediate values.
+  // Plain, not $state: the queue is machinery, and leaving it untracked keeps the
+  // enqueue effect from re-running on its own push.
+  const pending: string[] = [];
+  // svelte-ignore state_referenced_locally
+  let latest = value;
+
+  // Every distinct value gets its own flip — a GM clicking faster than the 480ms
+  // animation queues flips up rather than collapsing them into the newest value.
   $effect(() => {
-    if (!flipping && value !== current) {
-      next = value;
-      flipping = true;
-    }
+    if (value === latest) return;
+    latest = value;
+    pending.push(value);
+    if (!flipping) advance();
   });
 
-  function settle() {
+  function advance() {
+    const target = pending.shift();
+    if (target === undefined) return;
+    next = target;
+    flipping = true;
+    flipId += 1;
+  }
+
+  // The shade animations on the faces' pseudo-elements bubble their own
+  // animationend up here; only the flap's own end settles the flip.
+  function settle(event: AnimationEvent) {
+    if (event.target !== event.currentTarget) return;
     current = next;
     flipping = false;
+    advance();
   }
 
   // Digit art is served by Foundry at the module path (never imported — see CLAUDE.md);
@@ -44,16 +75,22 @@
     {@render pane(current, 'bottom')}
   </div>
   {#if flipping}
-    <div class="flap" onanimationend={settle}>
-      <div class="face front">
-        {@render pane(current, 'top')}
+    {#key flipId}
+      <div class="flap" onanimationend={settle}>
+        <div class="face front">
+          {@render pane(current, 'top')}
+        </div>
+        <div class="face back">
+          {@render pane(next, 'bottom')}
+        </div>
       </div>
-      <div class="face back">
-        {@render pane(next, 'bottom')}
-      </div>
-    </div>
+    {/key}
   {/if}
   <div class="hinge"></div>
+  {#if onadjust}
+    <button type="button" class="nudge up" aria-label={labelUp} onclick={() => onadjust(1)}></button>
+    <button type="button" class="nudge down" aria-label={labelDown} onclick={() => onadjust(-1)}></button>
+  {/if}
 </div>
 
 <style>
@@ -160,6 +197,62 @@
     transform: translateY(-50%);
     background: rgba(0, 0, 0, 0.55);
     z-index: 3;
+  }
+
+  /* Half-card hit targets, above the flap and hinge so a click lands mid-animation.
+     Every declaration here also has to out-specify Foundry's core button styling. */
+  .digit .nudge {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 50%;
+    z-index: 4;
+    margin: 0;
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+    cursor: pointer;
+  }
+  .digit .nudge.up {
+    top: 0;
+    border-radius: var(--fc-r) var(--fc-r) 0 0;
+  }
+  .digit .nudge.down {
+    bottom: 0;
+    border-radius: 0 0 var(--fc-r) var(--fc-r);
+  }
+  .digit .nudge:hover,
+  .digit .nudge:focus-visible {
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow: none;
+    outline: none;
+  }
+
+  /* Arrow affordance — hidden until the GM hovers, so the face stays clean. */
+  .nudge::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    width: calc(var(--fc-h, 96px) * 0.16);
+    aspect-ratio: 2 / 1;
+    transform: translateX(-50%);
+    background: var(--fc-ink, #f2efe6);
+    opacity: 0;
+    transition: opacity 120ms ease;
+  }
+  .nudge.up::after {
+    top: 14%;
+    clip-path: polygon(50% 0, 100% 100%, 0 100%);
+  }
+  .nudge.down::after {
+    bottom: 14%;
+    clip-path: polygon(0 0, 100% 0, 50% 100%);
+  }
+  .digit .nudge:hover::after,
+  .digit .nudge:focus-visible::after {
+    opacity: 0.85;
   }
 
   /* Gravity fall, then a small rebound off the stop. */

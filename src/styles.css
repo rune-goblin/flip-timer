@@ -5,6 +5,13 @@
 /* Frameless overlay: no AppV2 chrome, and for players the panel is a pure
    display — clicks fall through to the canvas beneath it. */
 .decagone-timer-overlay {
+  position: fixed;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  min-width: 0;
+  max-width: 100vw;
   background: none;
   border: none;
   box-shadow: none;
