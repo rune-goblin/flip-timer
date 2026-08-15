@@ -88,6 +88,14 @@
       {/key}
     {/if}
     <div class="hinge"></div>
+    <!-- Outside the flipping block on purpose: the flap unmounts at settle (480ms)
+         but the pulse runs to 764ms. `next` is the landing digit mid-flip and the
+         displayed one at rest. -->
+    {#if flipId > 0}
+      {#key flipId}
+        <span class="pulse" style:mask-image={glyphUrl(next)}></span>
+      {/key}
+    {/if}
     {#if onadjust}
       <button type="button" class="nudge up" aria-label={labelUp} onclick={() => onadjust(1)}></button>
       <button type="button" class="nudge down" aria-label={labelDown} onclick={() => onadjust(-1)}></button>
@@ -198,6 +206,21 @@
     animation: fc-shade-back 480ms both;
   }
 
+  /* A glyph-shaped echo emitted at the flap's impact — the 264ms delay is 55% of
+     fc-flip, the moment the card lands. Transparent unless the panel opts in via
+     --fc-pulse, so ordinary ticking stays quiet. */
+  .pulse {
+    position: absolute;
+    inset: 9% 8%;
+    z-index: 5;
+    background: var(--fc-pulse, transparent);
+    mask-position: center;
+    mask-size: contain;
+    mask-repeat: no-repeat;
+    pointer-events: none;
+    animation: fc-pulse 500ms ease-out 264ms both;
+  }
+
   .hinge {
     position: absolute;
     top: 50%;
@@ -300,12 +323,32 @@
       opacity: 0;
     }
   }
+  /* Scale 1.8 pushes the glyph's edge out ~32px at full size (96px clock) and
+     proportionally when compact. Invisible during the delay (fill backwards holds
+     the 0% frame) and after (100% is transparent). */
+  @keyframes fc-pulse {
+    0% {
+      opacity: 0;
+      transform: scale(1);
+    }
+    10% {
+      opacity: 0.8;
+    }
+    100% {
+      opacity: 0;
+      transform: scale(1.8);
+    }
+  }
 
   /* animationend must still fire or the digit never settles, so shorten, not remove. */
   @media (prefers-reduced-motion: reduce) {
     .flap,
     .face::after {
       animation-duration: 1ms;
+    }
+    .pulse {
+      animation: none;
+      opacity: 0;
     }
   }
 </style>

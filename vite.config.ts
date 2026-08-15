@@ -26,6 +26,19 @@ export default defineConfig({
         });
       },
     },
+    {
+      // The built entry doesn't exist in dev: rewrite Foundry's request for it to
+      // src/index.ts (base maps /modules/<id>/dist/ → src/), served with HMR. A
+      // middleware, not a self-proxy: a proxy target would hardcode this server's
+      // port, and Vite silently moves to the next port when 30001 is already taken.
+      name: 'serve-dev-entry',
+      configureServer(server) {
+        server.middlewares.use((req, _res, next) => {
+          if (req.url?.split('?')[0] === `/modules/${id}/dist/${id}.js`) req.url = `/modules/${id}/dist/index.ts`;
+          next();
+        });
+      },
+    },
   ],
   resolve: {
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
@@ -38,12 +51,6 @@ export default defineConfig({
     port: 30001,
     open: '/game',
     proxy: {
-      // The built entry doesn't exist in dev: bounce Foundry's request for it back to
-      // Vite as src/index.ts (base maps /modules/<id>/dist/ → src/), served with HMR.
-      [`/modules/${id}/dist/${id}.js`]: {
-        target: `http://localhost:30001/modules/${id}/dist`,
-        rewrite: () => '/index.ts',
-      },
       // Our static files live on disk under the module, not in Vite's src/ root — Foundry serves them.
       [`^/modules/${id}/(lang|packs|assets)/`]: FOUNDRY,
       // Everything outside our module (Foundry core, the active system, other modules).

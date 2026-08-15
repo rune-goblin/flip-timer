@@ -30,6 +30,7 @@
   let display = $derived(formatClock(shown));
   let urgent = $derived(shown > 0 && shown <= 10);
   let done = $derived(shown === 0);
+  let blink = $derived(urgent && timer.running);
 
   // Seeds from the synced value; the input then belongs to the GM until applied.
   let minutes = $state(Math.max(Math.round(timer.duration / 60), 1));
@@ -79,7 +80,7 @@
     </button>
   </div>
   <div class="clock-row">
-    <div class={['clock', { urgent, done, running: timer.running }]}>
+    <div class={['clock', { urgent, done, running: timer.running }]} class:blink-a={blink && shown % 2 === 1} class:blink-b={blink && shown % 2 === 0}>
       <FlipClock text={display} onadjust={isGM ? adjust : undefined} adjustLabel={isGM ? adjustLabel : undefined} />
     </div>
     {#if timer.splits.length}
@@ -153,12 +154,23 @@
   }
   .clock.urgent {
     --fc-ink: #ff4545;
+    --fc-pulse: #ff4545;
   }
-  .clock.urgent.running {
-    animation: fc-blink 1s ease-in-out infinite;
+  /* One pulse per flip, not a free-running blink: full opacity lands on the flap's
+     impact — 55% of FlipDigit's 480ms fc-flip, so 264ms into the second — then decays
+     until the next flip begins. Two identical animations alternated by second parity,
+     because reassigning the same name never replays. */
+  .clock.blink-a {
+    animation: fc-blink-a 1s both;
   }
+  .clock.blink-b {
+    animation: fc-blink-b 1s both;
+  }
+  /* --fc-pulse here too: the final flip to zero lands after urgent has yielded to
+     done, and its pulse should still fire. */
   .clock.done {
     --fc-ink: #ff4545;
+    --fc-pulse: #ff4545;
     animation: fc-done-pulse 1.2s ease-in-out infinite;
   }
   .splits {
@@ -289,13 +301,32 @@
     padding: 0;
     flex: 0 0 auto;
   }
-  @keyframes fc-blink {
-    0%,
-    100% {
-      opacity: 1;
+  /* ease-in on the rise mirrors the flap's gravity fall, so brightness accelerates
+     into the impact just as the card does. */
+  @keyframes fc-blink-a {
+    0% {
+      opacity: 0.75;
+      animation-timing-function: ease-in;
     }
-    50% {
-      opacity: 0.25;
+    26.4% {
+      opacity: 1;
+      animation-timing-function: ease-out;
+    }
+    100% {
+      opacity: 0.75;
+    }
+  }
+  @keyframes fc-blink-b {
+    0% {
+      opacity: 0.75;
+      animation-timing-function: ease-in;
+    }
+    26.4% {
+      opacity: 1;
+      animation-timing-function: ease-out;
+    }
+    100% {
+      opacity: 0.75;
     }
   }
   @keyframes fc-done-pulse {
@@ -308,7 +339,8 @@
     }
   }
   @media (prefers-reduced-motion: reduce) {
-    .clock.urgent.running,
+    .clock.blink-a,
+    .clock.blink-b,
     .clock.done {
       animation: none;
     }
