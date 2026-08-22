@@ -5,10 +5,10 @@ const { ApplicationV2 } = foundry.applications.api;
 
 export class ExampleApp extends ApplicationV2 {
   static override DEFAULT_OPTIONS = {
-    id: 'decagone-timer-example',
+    id: 'flip-timer-example',
     tag: 'section',
-    classes: ['decagone-timer'],
-    window: { title: 'decagone-timer.title', icon: 'fa-solid fa-flask', resizable: false },
+    classes: ['flip-timer'],
+    window: { title: 'flip-timer.title', icon: 'fa-solid fa-flask', resizable: false },
     position: { width: 420, height: 'auto' as const },
   };
 

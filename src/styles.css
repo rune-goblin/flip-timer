@@ -1,3 +1,19 @@
-.decagone-timer {
-  --decagone-timer-accent: #6b21a8;
+.flip-timer {
+  --flip-timer-accent: #6b21a8;
+}
+
+/* Frameless overlay: no AppV2 chrome. Everyone can point at it — players need the
+   hover to reveal the drag handle — so it takes clicks over its own box. */
+.flip-timer-overlay {
+  position: fixed;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  min-width: 0;
+  max-width: 100vw;
+  background: none;
+  border: none;
+  box-shadow: none;
+  padding: 0;
 }

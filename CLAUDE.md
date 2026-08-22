@@ -1,8 +1,8 @@
-# decagone-timer — project rules
+# flip-timer — project rules
 
 A Foundry VTT **Pathfinder 2e** module template. Hybrid: compendium content (`packs/`)
 plus a scripted esmodule (`src/`) built with TypeScript + Svelte 5 + Vite
-(`src/index.ts` → `dist/decagone-timer.{js,css}`). `module.json` is the manifest.
+(`src/index.ts` → `dist/flip-timer.{js,css}`). `module.json` is the manifest.
 
 **The Foundry/PF2e API, compendium packs, Svelte-in-ApplicationV2, the Vite build, and
 multi-client sync live in the user-level `foundry-pf2e` skill** — consult it for any of
@@ -59,12 +59,12 @@ Code style: global `~/.claude/CLAUDE.md` — comment only the non-obvious *why*.
 
 ## This repo's specifics
 
-- Module id `decagone-timer`; flags, settings, the socket channel (`module.<id>`),
+- Module id `flip-timer`; flags, settings, the socket channel (`module.<id>`),
   and pack names (`<id>.<pack>`) all key off it. Use `const MODULE_ID`.
 - Public API: `game.modules.get(MODULE_ID).api = {...}` (cast — `api` isn't typed on `Module`).
-- Strings: `lang/en.json` under `decagone-timer.*`; `game.i18n.localize/format`. No hard-coded strings.
+- Strings: `lang/en.json` under `flip-timer.*`; `game.i18n.localize/format`. No hard-coded strings.
 - compatibility `minimum "14"`, `verified "14"`; MIT license. Author and the `url`/`manifest`/`download` org come from `npm run init` (committed as `<your-name>`/`<your-org>` placeholders until then).
-- Release: tag `vX.Y.Z` → `release.yml` stamps the version, type-checks, builds, publishes `module.json` + `decagone-timer.zip` (zip ships `dist lang packs assets` — must include the art).
+- Release: tag `vX.Y.Z` → `release.yml` stamps the version, type-checks, builds, publishes `module.json` + `flip-timer.zip` (zip ships `dist lang packs assets` — must include the art).
 
 ## Gotchas
 

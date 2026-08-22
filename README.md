@@ -1,4 +1,4 @@
-# Decagone Timer
+# Flip Timer
 
 A starting point for **Pathfinder 2e Foundry VTT** modules. Ship compendium content
 (`packs/`) and a scripted esmodule (`src/`) — a **Svelte 5** UI in an **ApplicationV2**
@@ -16,7 +16,7 @@ shell — from one repo.
 
 - **Svelte 5 in ApplicationV2, wired up.** A working window (`src/ui/ExampleApp.ts`)
   `mount()`s a runes component and `unmount()`s it on close. Open it from the console:
-  `game.modules.get('decagone-timer').api.open()`.
+  `game.modules.get('flip-timer').api.openExample()`.
 
 - **Vite Hot Module Reload.** `src/index.ts` compiles to `dist/<id>.{js,css}`, the artifacts
   `module.json` loads. `npm run dev` serves with hot module reload (HMR); `npm run check` runs `svelte-check` and `tsc`.
@@ -59,7 +59,7 @@ src/                 TypeScript + Svelte source (entry: src/index.ts)
   ui/ExampleApp.ts                       ApplicationV2 shell that mounts a Svelte component
   ui/components/example/Example.svelte         sample Svelte 5 component (runes)
   ui/components/example/RuneGoblinBadge.svelte example: art referenced by served path (img + fetched SVG)
-  styles.css         global styles → dist/decagone-timer.css
+  styles.css         global styles → dist/flip-timer.css
   app.d.ts           ambient *.svelte declaration
 assets/              module art — one source, one output, served at modules/<id>/assets/…
 dist/                build output (gitignored) — what module.json loads
@@ -180,7 +180,75 @@ claude mcp add -s project svelte -- npx -y @sveltejs/mcp  # or commit for collab
 The window is a thin `ApplicationV2` subclass; Svelte renders. `_renderHTML` calls
 `mount()` into a detached element, `_replaceHTML` inserts it, `_preClose` calls
 `unmount()`. See `src/ui/ExampleApp.ts`. Open the sample from the console:
-`game.modules.get('decagone-timer').api.open()`.
+`game.modules.get('flip-timer').api.openExample()`.
+
+## Controlling the timer (macros & API)
+
+The module exposes its controls at `game.modules.get('flip-timer').api`, so a script macro,
+the console, or another module can drive the clock. Every call is GM-only: on a player
+client it warns and returns `false`, leaving the state untouched.
+
+```js
+const timer = game.modules.get('flip-timer')?.api;
+
+timer.start();          // run the parked time (shows the panel)
+timer.start(90);        // ...or restart at 90 seconds, running or not
+timer.pause();          // halt, keeping the time on the face
+timer.stop();           // halt and restore the configured duration
+timer.show();           // show / hide the overlay
+timer.hide();
+timer.toggle();
+timer.setDuration(10);  // configured length, in minutes (1–99)
+timer.setRemaining(45); // the face only — `stop()` still restores the duration
+timer.split();          // park the live time beside the clock (max 3)
+timer.state();          // { visible, running, endAt, remaining, duration, splits }
+
+timer.cues();           // [{ at: 300, text: 'Torches gutter out' }, ...]
+timer.setCues('05:00  Torches gutter out\n00:30  Roll initiative');
+timer.setCues([{ at: '05:00', text: 'Torches gutter out' }, { at: 30, text: 'Roll initiative' }]);
+timer.addCue('02:00', 'The door shudders');   // appended, comments preserved
+timer.clearCues();
+```
+
+`state().remaining` is the live countdown, so a macro can branch on it. Mutations sync to
+every client over the socket and persist to a world setting, exactly as the panel's own
+buttons do.
+
+Cue times take either a `"MM:SS"` code or a plain count of seconds; a call with an
+unreadable time or empty text warns and returns `false`, leaving the sheet untouched.
+
+The `macros` pack ships **Flip Timer: Start / Pause / Stop / Toggle** — drag one to the
+hotbar for one-key control.
+
+A module loading alongside this one can grab the api without racing the `ready` hook:
+
+```js
+Hooks.on('flip-timer.ready', (api) => api.setDuration(5));
+```
+
+## Cues (timed notifications)
+
+The GM can park a list of announcements against the clock. Each fires when the face
+reaches its time, like an alarm clock — **Settings → Flip Timer → Timer cues** holds the
+sheet, one cue per line:
+
+```
+# Ambush is set for the quarter mark
+25:00  The goblins wake up
+10:00  Start wrapping the scene
+02:30  Last round warning
+00:00  Hand out loot
+```
+
+A line is `MM:SS`, whitespace, then the text. Blank lines and lines starting with `#` are
+ignored; anything else is dropped with a warning naming the line. The time is what the
+**clock reads**, so `05:00` means "five minutes left", whatever the configured duration.
+
+Cues are the GM's own prompts: each one raises a banner on every GM's screen and a chat
+message whispered to the GM role, and no player sees either. They fire whether or not the
+overlay is on screen, and only while the clock is running — a cue rearms if the GM winds
+the time back above it. With two GMs connected only the primary one announces, so nothing
+doubles up.
 
 ## Compendium packs (fvtt CLI)
 
@@ -188,7 +256,7 @@ Pack **sources** live in `packs/_source/<name>/*.json` (tracked). `npm run build
 every one into a LevelDB at `packs/<name>` via `scripts/pack.ts` — the built packs are
 gitignored, like `dist/`, so the shipped LevelDB always matches the sources and the current
 module id. The starter example is the `macros` pack with an **Open Example** script macro
-(`game.modules.get('<id>')?.api?.open()`), which opens the example window from the macro bar.
+(`game.modules.get('<id>')?.api?.openExample()`), which opens the example window from the macro bar.
 
 Edit the JSON sources, then rebuild. The `fvtt` CLI (a dev dependency) is wrapped for manual
 single-pack work — close Foundry first, as it locks the LevelDB while it runs (the `build`

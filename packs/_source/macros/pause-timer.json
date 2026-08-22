@@ -1,0 +1,14 @@
+{
+  "_id": "pmtPauseTimer001",
+  "_key": "!macros!pmtPauseTimer001",
+  "name": "Flip Timer: Pause",
+  "type": "script",
+  "author": "pmtTemplateUser1",
+  "img": "icons/svg/clockwork.svg",
+  "scope": "global",
+  "command": "game.modules.get('flip-timer')?.api?.pause();",
+  "ownership": {
+    "default": 0
+  },
+  "flags": {}
+}
