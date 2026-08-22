@@ -4,7 +4,9 @@
     "settings": {
       "state": "Timer state",
       "position": "Timer position",
-      "compact": "Compact timer"
+      "compact": "Compact timer",
+      "cues": "Timer cues",
+      "cuesHint": "One per line, \"MM:SS  text\" — announced to the GM when the clock reaches that time. Blank lines and lines starting with # are ignored."
     },
     "timer": {
       "start": "Start",
@@ -25,7 +27,10 @@
         "secondsTens": "tens of seconds",
         "secondsOnes": "seconds"
       },
-      "gmOnly": "Only the GM can toggle the Flip Timer."
+      "gmOnly": "Only the GM can control the Flip Timer.",
+      "cueFired": "{time} — {text}",
+      "cueRejected": "Flip Timer ignored unreadable cue line(s): {lines}. Each cue needs \"MM:SS  text\".",
+      "cueInvalid": "A cue needs a time of \"MM:SS\" (or seconds) and some text."
     }
   }
 }

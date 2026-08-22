@@ -18,6 +18,9 @@ export interface TimerSyncState {
   splits: number[];
 }
 
+const clampSeconds = (seconds: number): number =>
+  Math.min(Math.max(Math.trunc(seconds), 0), MAX_TIMER_SECONDS);
+
 export const DEFAULT_STATE: TimerSyncState = {
   visible: false,
   running: false,
@@ -64,16 +67,26 @@ class TimerStore {
     return this.running ? Math.max(Math.ceil((this.endAt - Date.now()) / 1000), 0) : this.remaining;
   }
 
-  toggleVisible(): void {
-    if (!game.user.isGM) return;
-    this.visible = !this.visible;
+  setVisible(visible: boolean): void {
+    if (!game.user.isGM || this.visible === visible) return;
+    this.visible = visible;
     this.#publish();
   }
 
-  start(): void {
-    if (!game.user.isGM || this.running || this.remaining <= 0) return;
+  toggleVisible(): void {
+    this.setVisible(!this.visible);
+  }
+
+  /** `seconds` restarts the clock at that length, running or not; without it a running
+   *  clock is left alone. Shows the panel, so a macro start is never invisible. */
+  start(seconds?: number): void {
+    if (!game.user.isGM) return;
+    if (seconds !== undefined) this.remaining = clampSeconds(seconds);
+    else if (this.running) return;
+    if (this.remaining <= 0) return;
     this.endAt = Date.now() + this.remaining * 1000;
     this.running = true;
+    this.visible = true;
     this.#publish();
   }
 
@@ -95,7 +108,7 @@ class TimerStore {
    *  restores the configured length. */
   setRemaining(seconds: number): void {
     if (!game.user.isGM) return;
-    const next = Math.min(Math.max(Math.trunc(seconds), 0), MAX_TIMER_SECONDS);
+    const next = clampSeconds(seconds);
     this.remaining = next;
     if (this.running) {
       if (next === 0) this.running = false;

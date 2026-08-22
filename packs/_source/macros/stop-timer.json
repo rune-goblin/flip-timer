@@ -1,0 +1,14 @@
+{
+  "_id": "pmtStopTimer0001",
+  "_key": "!macros!pmtStopTimer0001",
+  "name": "Flip Timer: Stop",
+  "type": "script",
+  "author": "pmtTemplateUser1",
+  "img": "icons/svg/clockwork.svg",
+  "scope": "global",
+  "command": "game.modules.get('flip-timer')?.api?.stop();",
+  "ownership": {
+    "default": 0
+  },
+  "flags": {}
+}

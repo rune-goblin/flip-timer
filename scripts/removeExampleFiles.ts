@@ -53,38 +53,21 @@ if (existsSync(assetsDir) && readdirSync(assetsDir).length === 0) {
   console.log('kept assets/ (added .gitkeep — served path stays valid)');
 }
 
-// packs/_source/ stays (its .gitkeep keeps the pack scaffold); the build skips it when empty.
-remove(at('packs', '_source', 'macros'));
+// Only the example's own macro — the timer macros beside it are the module's.
+remove(at('packs', '_source', 'macros', 'open-example.json'));
 
-// index.ts wired the example into the public api — drop just that wiring, keep the hooks and
-// the version api.
-const indexPath = at('src', 'index.ts');
-if (existsSync(indexPath)) {
-  const before = readFileSync(indexPath, 'utf8');
+// The api wired the example in — drop just that wiring, keep the timer surface.
+const apiPath = at('src', 'timer', 'api.ts');
+if (existsSync(apiPath)) {
+  const before = readFileSync(apiPath, 'utf8');
   const after = before
-    .replace(/^import \{ ExampleApp \} from '\.\/ui\/ExampleApp';\n/m, '')
-    .replace(/^\s*open: \(\) => void;\n/m, '')
-    .replace(', open: () => ExampleApp.open()', '');
+    .replace(/^import \{ ExampleApp \} from '@\/ui\/ExampleApp';\n/m, '')
+    .replace(/^\s*openExample\(\): void;\n/m, '')
+    .replace(/^\s*openExample: \(\) => ExampleApp\.open\(\),\n/m, '');
   if (after !== before) {
-    writeFileSync(indexPath, after);
-    console.log('rewrote src/index.ts (dropped the example api)');
+    writeFileSync(apiPath, after);
+    console.log('rewrote src/timer/api.ts (dropped the example api)');
     changed++;
-  }
-}
-
-// module.json declared the macros pack — remove that entry (leaves packs: [] if it was the
-// only one).
-const manifestPath = at('module.json');
-if (existsSync(manifestPath)) {
-  const manifest = JSON.parse(readFileSync(manifestPath, 'utf8')) as { packs?: { name?: string }[] };
-  if (Array.isArray(manifest.packs)) {
-    const kept = manifest.packs.filter((p) => p.name !== 'macros');
-    if (kept.length !== manifest.packs.length) {
-      manifest.packs = kept;
-      writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
-      console.log('rewrote module.json (removed the macros pack)');
-      changed++;
-    }
   }
 }
 

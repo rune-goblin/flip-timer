@@ -1,0 +1,14 @@
+{
+  "_id": "pmtStartTimer001",
+  "_key": "!macros!pmtStartTimer001",
+  "name": "Flip Timer: Start",
+  "type": "script",
+  "author": "pmtTemplateUser1",
+  "img": "icons/svg/clockwork.svg",
+  "scope": "global",
+  "command": "game.modules.get('flip-timer')?.api?.start();",
+  "ownership": {
+    "default": 0
+  },
+  "flags": {}
+}
