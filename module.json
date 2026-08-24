@@ -2,7 +2,7 @@
   "id": "flip-timer",
   "title": "Flip Timer",
   "description": "A Pathfinder 2e Foundry VTT module template: compendium content plus a scripted esmodule with a Svelte 5 UI mounted in ApplicationV2.",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "license": "MIT",
   "authors": [
     {
