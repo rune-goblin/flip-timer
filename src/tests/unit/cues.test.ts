@@ -28,8 +28,12 @@ describe('parseCues', () => {
     expect(cues.map((cue) => cue.at)).toEqual([600, 300, 30]);
   });
 
+  it('reads an hours field', () => {
+    expect(parseCues('01:30:00  Halfway').cues[0]?.at).toBe(5400);
+  });
+
   it('clamps a time past the clock face', () => {
-    expect(parseCues('99:59  Edge').cues[0]?.at).toBe(5999);
+    expect(parseCues('99:99:59  Edge').cues[0]?.at).toBe(99 * 3600 + 59 * 60 + 59);
   });
 });
 
@@ -37,6 +41,7 @@ describe('toSeconds', () => {
   it('takes a time code or a plain count of seconds', () => {
     expect(toSeconds('05:00')).toBe(300);
     expect(toSeconds(' 1:05 ')).toBe(65);
+    expect(toSeconds('02:01:05')).toBe(7265);
     expect(toSeconds(90)).toBe(90);
   });
 
@@ -49,7 +54,7 @@ describe('toSeconds', () => {
 
 describe('formatCues', () => {
   it('round-trips through parseCues', () => {
-    const source = '10:00  Wrap up\n00:05  Go';
+    const source = '02:00:00  Halftime\n10:00  Wrap up\n00:05  Go';
     expect(formatCues(parseCues(source).cues)).toBe(source);
   });
 });

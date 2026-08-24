@@ -6,7 +6,7 @@
       "position": "Timer position",
       "compact": "Compact timer",
       "cues": "Timer cues",
-      "cuesHint": "One per line, \"MM:SS  text\" — announced to the GM when the clock reaches that time. Blank lines and lines starting with # are ignored."
+      "cuesHint": "One per line, \"[HH:]MM:SS  text\" — announced to the GM when the clock reaches that time. Blank lines and lines starting with # are ignored."
     },
     "timer": {
       "start": "Start",
@@ -22,6 +22,8 @@
       "adjustUp": "Increase {place}",
       "adjustDown": "Decrease {place}",
       "places": {
+        "hoursTens": "tens of hours",
+        "hoursOnes": "hours",
         "minutesTens": "tens of minutes",
         "minutesOnes": "minutes",
         "secondsTens": "tens of seconds",
@@ -29,8 +31,8 @@
       },
       "gmOnly": "Only the GM can control the Flip Timer.",
       "cueFired": "{time} — {text}",
-      "cueRejected": "Flip Timer ignored unreadable cue line(s): {lines}. Each cue needs \"MM:SS  text\".",
-      "cueInvalid": "A cue needs a time of \"MM:SS\" (or seconds) and some text."
+      "cueRejected": "Flip Timer ignored unreadable cue line(s): {lines}. Each cue needs \"[HH:]MM:SS  text\".",
+      "cueInvalid": "A cue needs a time of \"[HH:]MM:SS\" (or seconds) and some text."
     }
   }
 }

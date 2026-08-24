@@ -1,9 +1,20 @@
 <script lang="ts">
-  import { MAX_SPLITS, MODULE_ID, SETTING_COMPACT } from '@/constants';
+  import { cubicOut } from 'svelte/easing';
+  import type { TransitionConfig } from 'svelte/transition';
+  import { MAX_SPLITS, MAX_TIMER_MINUTES, MODULE_ID, SETTING_COMPACT } from '@/constants';
   import { placement } from '@/timer/placement';
   import { timer } from '@/timer/store.svelte';
   import FlipClock from './FlipClock.svelte';
-  import { adjustClockDigit, CLOCK_PLACES, formatClock } from './format';
+  import {
+    adjustClockDigit,
+    adjustHourDigit,
+    clockHours,
+    clockMinutes,
+    CLOCK_PLACES,
+    formatClock,
+    HOUR_PLACES,
+    type ClockPlace,
+  } from './format';
 
   const isGM = game.user.isGM;
 
@@ -27,7 +38,8 @@
     return () => clearInterval(id);
   });
 
-  let display = $derived(formatClock(shown));
+  let display = $derived(clockMinutes(shown));
+  let hours = $derived(clockHours(shown));
   let urgent = $derived(shown > 0 && shown <= 10);
   let done = $derived(shown === 0);
   let blink = $derived(urgent && timer.running);
@@ -40,11 +52,28 @@
   // Adjusting off the displayed value, not the stored one, so a running clock is
   // overridden from the second the GM actually sees.
   const adjust = (index: number, delta: number) => timer.setRemaining(adjustClockDigit(shown, index, delta));
+  const adjustHours = (index: number, delta: number) => timer.setRemaining(adjustHourDigit(shown, index, delta));
 
-  const adjustLabel = (index: number, delta: number) =>
+  const labelFor = (places: Record<number, ClockPlace>) => (index: number, delta: number) =>
     game.i18n.format(`${MODULE_ID}.timer.${delta > 0 ? 'adjustUp' : 'adjustDown'}`, {
-      place: i18n(`places.${CLOCK_PLACES[index]?.name}`),
+      place: i18n(`places.${places[index]?.name}`),
     });
+
+  const adjustLabel = labelFor(CLOCK_PLACES);
+  const hourLabel = labelFor(HOUR_PLACES);
+
+  // Width alongside opacity, so the minutes columns slide over as the hours column
+  // arrives and leaves instead of jumping a column's width sideways.
+  function unroll(node: HTMLElement): TransitionConfig {
+    // Measured off the inner box, which holds its natural width while the outer one
+    // animates — so a fade interrupted mid-flight still resolves to the full width.
+    const width = (node.firstElementChild as HTMLElement | null)?.getBoundingClientRect().width ?? 0;
+    return {
+      duration: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 420,
+      easing: cubicOut,
+      css: (t) => `opacity: ${t}; width: ${t * width}px`,
+    };
+  }
 
   let compact = $state(game.settings.get(MODULE_ID, SETTING_COMPACT) === true);
 
@@ -81,7 +110,17 @@
   </div>
   <div class="clock-row">
     <div class={['clock', { urgent, done, running: timer.running }]} class:blink-a={blink && shown % 2 === 1} class:blink-b={blink && shown % 2 === 0}>
-      <FlipClock text={display} onadjust={isGM ? adjust : undefined} adjustLabel={isGM ? adjustLabel : undefined} />
+      <div class="face" role="timer">
+        <!-- Only above the hour: below it the column is absent, not zero. -->
+        {#if hours}
+          <div class="hours" transition:unroll>
+            <div class="hours-inner">
+              <FlipClock text={`${hours}:`} onadjust={isGM ? adjustHours : undefined} adjustLabel={isGM ? hourLabel : undefined} />
+            </div>
+          </div>
+        {/if}
+        <FlipClock text={display} onadjust={isGM ? adjust : undefined} adjustLabel={isGM ? adjustLabel : undefined} />
+      </div>
     </div>
     {#if timer.splits.length}
       <!-- Absolute so the main clock keeps its place as splits come and go. -->
@@ -108,7 +147,7 @@
     <div class="controls">
       <label>
         {i18n('minutes')}
-        <input type="number" min="1" max="99" bind:value={minutes} onchange={() => timer.setDurationMinutes(minutes)} />
+        <input type="number" min="1" max={MAX_TIMER_MINUTES} bind:value={minutes} onchange={() => timer.setDurationMinutes(minutes)} />
       </label>
       <button
         type="button"
@@ -151,6 +190,24 @@
   }
   .clock {
     --fc-h: var(--fc-size);
+  }
+  .face {
+    display: flex;
+    align-items: center;
+  }
+  /* Clipped so the column unrolls out of nothing; the inner box keeps its natural
+     width, which is what the transition measures. The padding gives the cards' drop
+     shadow room inside the clip, and the negative margin hands that room back to the
+     row so the hours sit level with the minutes. */
+  .hours {
+    overflow: hidden;
+    margin-block: calc(var(--fc-h, 96px) * -0.1);
+  }
+  .hours-inner {
+    width: max-content;
+    padding-block: calc(var(--fc-h, 96px) * 0.1);
+    /* Stands in for the gap .face gives up, so the spacing collapses with the column. */
+    padding-right: calc(var(--fc-h, 96px) * 0.08);
   }
   .clock.urgent {
     --fc-ink: #ff4545;
