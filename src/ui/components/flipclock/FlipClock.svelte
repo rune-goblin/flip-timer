@@ -14,9 +14,11 @@
   } = $props();
 </script>
 
-<!-- Keyed by position on purpose: a column's identity IS its position, so each
+<!-- No role: the caller owns it — the face is two of these side by side once the
+     hours column is up, and that is one timer, not two.
+     Keyed by position on purpose: a column's identity IS its position, so each
      FlipDigit persists in place and animates when its character changes. -->
-<div class="flipclock" role="timer">
+<div class="flipclock">
   {#each text as ch, i (i)}
     {#if ch >= '0' && ch <= '9'}
       <FlipDigit

@@ -198,7 +198,7 @@ timer.stop();           // halt and restore the configured duration
 timer.show();           // show / hide the overlay
 timer.hide();
 timer.toggle();
-timer.setDuration(10);  // configured length, in minutes (1–99)
+timer.setDuration(10);  // configured length, in minutes (1–5999)
 timer.setRemaining(45); // the face only — `stop()` still restores the duration
 timer.split();          // park the live time beside the clock (max 3)
 timer.state();          // { visible, running, endAt, remaining, duration, splits }
@@ -214,7 +214,7 @@ timer.clearCues();
 every client over the socket and persist to a world setting, exactly as the panel's own
 buttons do.
 
-Cue times take either a `"MM:SS"` code or a plain count of seconds; a call with an
+Cue times take either a `"MM:SS"` / `"HH:MM:SS"` code or a plain count of seconds; a call with an
 unreadable time or empty text warns and returns `false`, leaving the sheet untouched.
 
 The `macros` pack ships **Flip Timer: Start / Pause / Stop / Toggle** — drag one to the
@@ -225,6 +225,15 @@ A module loading alongside this one can grab the api without racing the `ready` 
 ```js
 Hooks.on('flip-timer.ready', (api) => api.setDuration(5));
 ```
+
+## The clock face
+
+The face shows `MM:SS`, minutes rolling within the hour. Past an hour it grows an hours
+column, which fades in as the clock crosses `01:00:00` and out again below it. The GM
+nudges any digit up or down by hovering it and clicking the half-card arrows. The face is
+a counter: a column adds or subtracts its own place value from the total and carries into
+the ones above it, so nudging `59:00` up by a minute reads `01:00:00` and grows the hours
+column to hold it. Nudges clamp at `00:00` and at `99:59:59`.
 
 ## Cues (timed notifications)
 
@@ -240,7 +249,7 @@ sheet, one cue per line:
 00:00  Hand out loot
 ```
 
-A line is `MM:SS`, whitespace, then the text. Blank lines and lines starting with `#` are
+A line is `MM:SS` (or `HH:MM:SS`), whitespace, then the text. Blank lines and lines starting with `#` are
 ignored; anything else is dropped with a warning naming the line. The time is what the
 **clock reads**, so `05:00` means "five minutes left", whatever the configured duration.
 

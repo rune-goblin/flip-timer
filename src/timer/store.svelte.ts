@@ -1,4 +1,4 @@
-import { MAX_SPLITS, MAX_TIMER_SECONDS, MODULE_ID } from '@/constants';
+import { MAX_SPLITS, MAX_TIMER_MINUTES, MAX_TIMER_SECONDS, MODULE_ID } from '@/constants';
 import { broadcastTimerSync } from './socket';
 
 export const SETTING_STATE = 'state';
@@ -119,7 +119,7 @@ class TimerStore {
 
   setDurationMinutes(minutes: number): void {
     if (!game.user.isGM) return;
-    this.duration = Math.min(Math.max(Math.trunc(minutes), 1), 99) * 60;
+    this.duration = Math.min(Math.max(Math.trunc(minutes), 1), MAX_TIMER_MINUTES) * 60;
     if (!this.running) this.remaining = this.duration;
     this.#publish();
   }
